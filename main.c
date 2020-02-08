@@ -50,7 +50,7 @@
     "commands:\n"                                            \
     "  init          initialize pass\n"                      \
     "  show          retrieve a previously saved password\n" \
-    "  edit          save a password\n"                      \
+    "  set           save a password\n"                      \
     "  rm            delete a previously saved password\n"   \
     "  backup        backup passwords and current key\n"     \
     "  help          show this screen\n"                     \
@@ -101,6 +101,11 @@ strcat(fp, argv[i+1]);
 // yyyy-mm-dd format.
 #define DATE_FORMAT "%d-%02d-%02d" 
 #define DATE_BUF_SZ 11
+
+#define KEY_OVERWRITE_MESSAGE !!!! WARNING !!!!           \
+This is a destructive action that will prevent previously \
+passwords from being retrieved. Please make sure this is  \
+what you want to do.
 
 /**
  * full_key_path returns the full path to the key file.
@@ -191,7 +196,7 @@ decrypt_password(const char *source_file, const unsigned char key[crypto_secrets
         
         fwrite(buf_out, 1, (size_t)out_len, stdout);
         fwrite("\n", 1, (size_t)1, stdout);
-    } while (! eof);
+    } while (!eof);
 
     ret = 0;
 ret:
@@ -203,15 +208,10 @@ ret:
  * create_key generates a new AES key.
  */
 static int
-create_key() 
+create_key(const char *kf) 
 {
     unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
     crypto_secretstream_xchacha20poly1305_keygen(key);
-
-    char kf[PATH_MAX] = {0};
-    BASE_DIRECTORY;
-    strcpy(kf, base_dir);
-    strcat(kf, "/" KEY_NAME);
 
     FILE *f = fopen(kf, "w");
     if (!f) {
@@ -254,11 +254,28 @@ main(int argc, char **argv)
 
             INITIALIZE_DIR;
 
-            printf("creating key: ~/.pass/key\n");
-            if (create_key() != 0) {
-                perror("failed to generate key");
-                return 1;
+            char *kf = full_key_path();
+
+            if (access(kf, F_OK ) != -1) {
+                char answer;
+                printf("overwrite existing key? [Y/n] ");
+                scanf("%c", &answer);
+                if (answer == 'Y') {
+                    printf("creating key: ~/.pass/key\n");
+                    if (create_key(kf) != 0) {
+                        perror("failed to generate key");
+                        return 1;
+                    }
+                }
+            } else {
+                printf("creating key: ~/.pass/key\n");
+                if (create_key(kf) != 0) {
+                    perror("failed to generate key");
+                    return 1;
+                }
             }
+
+            free(kf);
 
             return 0;
         }
@@ -293,7 +310,7 @@ main(int argc, char **argv)
             break;
         }
 
-        if ((strcmp(argv[i], "edit") == 0) || (strcmp(argv[i], "set") == 0)) {
+        if (strcmp(argv[i], "set") == 0) {
             COMMAND_ARG_ERR_CHECK;
 
             char pass_buf[MAX_PASS_SIZE] = {0};
@@ -341,7 +358,7 @@ main(int argc, char **argv)
 
             char today[DATE_BUF_SZ];
             sprintf(today, DATE_FORMAT, year, month, now->tm_mday);
-            
+
             break;
         }
 

@@ -1,0 +1,41 @@
+.\" Manpage for pass.
+.\" Contact Brian J. Downs to correct errors or typos.
+.TH man 8 "08 February 2020" "0.1.0" "pass man page"
+.SH NAME
+pass \- simple password manager 
+.SH SYNOPSIS
+pass [COMMAND]
+.SH DESCRIPTION
+pass is a very simple password manager inspired by `pass` but without the use of GnuPG. It uses `libsodium` for cryptography.
+
+.PP
+Examples:
+.PP
+pass init
+.PP
+pass set gmail.com
+.PP
+pass show gmail.com
+.PP
+
+The following options are available:
+.PP
+    -v      Display the version of pass currently installed.
+    -h      Display the help menu.
+.PP
+Commands:
+.PP
+    init          initialize pass
+    show          retrieve a previously saved password
+    set           save a password
+    rm            delete a previously saved password
+    backup        backup passwords and current key
+    help          show this screen
+    version       show the version
+
+.SH OPTIONS
+
+.SH BUGS
+No known bugs. Please log any issues to github.com/briandowns/pass/issues
+.SH AUTHOR
+Brian J. Downs (@bdowns328)

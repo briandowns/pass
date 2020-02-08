@@ -2,10 +2,11 @@
 
 [![Build Status](https://travis-ci.org/briandowns/pass.svg?branch=master)](https://travis-ci.org/briandowns/pass)
 
-`pass` is a very simple password manager inspired by `pass` but without the use of GnuPG. It uses `libsodium` for cryptography and `libarchive` for backup capabilities.
+`pass` is a very simple password manager inspired by `pass` but without the use of GnuPG. It uses `libsodium` for cryptography.
 
 ## Features
 
+* Generate AES Keys
 * Save passwords
 * Retrieve passwords
 * Backup passwords and keys
