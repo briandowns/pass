@@ -35,6 +35,12 @@ libsodium is used for cryptography and will need to be installed prior to compil
 make
 ```
 
+## Install 
+
+```sh
+make install
+```
+
 ## Test
 
 ```sh
