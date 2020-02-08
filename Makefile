@@ -14,11 +14,11 @@ LINUX_MAPPAGE_LOC = $(PREFIX)/man/man8
 
 override LDFLAGS += -lsodium
 override CFLAGS  += -O3 \
-					-Dapp_name=$(BINARY) \
-					-Dgit_sha=$(shell git rev-parse HEAD) \
-					-Dapp_version=$(VERSION) \
-					-L$(PREFIX)/opt/openssl/lib -I$(PREFIX)/opt/openssl/include \
-					-L$(PREFIX)/opt/libarchive/lib -I$(PREFIX)/opt/libarchive/include
+		-Dapp_name=$(BINARY) \
+		-Dgit_sha=$(shell git rev-parse HEAD) \
+		-Dapp_version=$(VERSION) \
+		-L$(PREFIX)/opt/openssl/lib -I$(PREFIX)/opt/openssl/include \
+		-L$(PREFIX)/opt/libarchive/lib -I$(PREFIX)/opt/libarchive/include
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 	$(CC) main.c $(CFLAGS) -o $@ $(LDFLAGS)

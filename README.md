@@ -21,13 +21,13 @@ libsodium is used for cryptography and will need to be installed prior to compil
 
 `brew install libsodium`
 
-* Apt
-
-`sudo apt-get install -y libsodium-dev`
-
 * FreeBSD
 
 `pkg install libsodium`
+
+* Apt
+
+`sudo apt-get install -y libsodium-dev`
 
 ## Build
 
