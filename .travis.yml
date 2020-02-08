@@ -2,6 +2,8 @@ language: c
 compiler:
   - clang
   - gcc
+install:
+  - apt-get install -y libsodium-dev
 script:
   - make
   - ./bin/pass -v
