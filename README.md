@@ -13,6 +13,22 @@
 
 ## Examples
 
+## Requirements
+
+libsodium is used for cryptography and will need to be installed prior to compiling `pass`.
+
+* MacOS
+
+`brew install libsodium`
+
+* Apt
+
+`sudo apt-get install -y libsodium-dev`
+
+* FreeBSD
+
+`pkg install libsodium`
+
 ## Build
 
 ```sh
