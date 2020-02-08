@@ -1,0 +1,9 @@
+language: c
+compiler:
+  - clang
+  - gcc
+script:
+  - make
+  - ./bin/pass -v
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
