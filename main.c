@@ -135,10 +135,10 @@ encrypt_password(const char *target_file, const char *password, const unsigned c
     
     crypto_secretstream_xchacha20poly1305_state st;
 
-    FILE          *fp_t;
+    FILE *fp_t;
     unsigned long long out_len;
-    int            eof;
-    unsigned char  tag;
+    int eof;
+    unsigned char tag;
     
     fp_t = fopen(target_file, "wb");
 
@@ -171,16 +171,16 @@ decrypt_password(const char *source_file, const unsigned char key[crypto_secrets
     crypto_secretstream_xchacha20poly1305_state st;
 
     unsigned long long out_len;
-    int            eof;
-    int            ret = -1;
-    unsigned char  tag;
+    int eof;
+    int ret = -1;
+    unsigned char tag;
 
     FILE *fp_s = fopen(source_file, "rb");
     
     fread(header, 1, sizeof header, fp_s);
 
     if (crypto_secretstream_xchacha20poly1305_init_pull(&st, header, key) != 0) {
-        goto ret; /* incomplete header */
+        goto ret;
     }
 
     do {
@@ -188,11 +188,11 @@ decrypt_password(const char *source_file, const unsigned char key[crypto_secrets
 
         eof = feof(fp_s);
         if (crypto_secretstream_xchacha20poly1305_pull(&st, buf_out, &out_len, &tag, buf_in, rlen, NULL, 0) != 0) {
-            goto ret; /* corrupted chunk */
+            goto ret;
         }
 
         if (tag == crypto_secretstream_xchacha20poly1305_TAG_FINAL && ! eof) {
-            goto ret; /* premature end (end of file reached before the end of the stream) */
+            goto ret;
         }
         
         fwrite(buf_out, 1, (size_t)out_len, stdout);
