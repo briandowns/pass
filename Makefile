@@ -2,9 +2,12 @@ CC               ?= cc
 DOCKER           ?= docker
 
 VERSION          := 0.1.0
+
 BINDIR           := bin
 BINARY           := pass
-override LDFLAGS += -lssl -lsodium
+PREFIX           := /usr/local
+
+override LDFLAGS += -lsodium
 override CFLAGS  += -O3 \
 					-Dapp_name=$(BINARY) \
 					-Dgit_sha=$(shell git rev-parse HEAD) \
@@ -13,7 +16,7 @@ override CFLAGS  += -O3 \
 					-L/usr/local/opt/libarchive/lib -I/usr/local/opt/libarchive/include
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
-	$(CC) main.c backup.c $(CFLAGS) -o $@ $(LDFLAGS)
+	$(CC) main.c $(CFLAGS) -o $@ $(LDFLAGS)
 
 $(BINDIR):
 	mkdir -p $@
@@ -21,12 +24,13 @@ $(BINDIR):
 $(DEPDIR):
 	mkdir -p $@
 
-.PHONY: image
-image:
-	$(DOCKER) build -t $(BINARY):latest .
+.PHONY: install
+install: $(BINDIR)/$(BINARY) $(BINDIR)
+	cp $(BINDIR)/$(BINARY) $(PREFIX)/bin
 
-.PHONY: push
-push:
+.PHONY: uninstall
+uninstall:
+	rm -f $(PREFIX)/$(BINDIR)/$(BINARY)
 
 .PHONY: deps
 deps: $(DEPDIR)
