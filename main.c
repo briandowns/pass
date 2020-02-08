@@ -323,8 +323,6 @@ main(int argc, char **argv)
                 return 1;
             }
 
-            printf("password set for: %s\n", argv[i+1]);
-
             break;
         }
 
