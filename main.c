@@ -53,12 +53,13 @@
     "  set           save a password\n"                      \
     "  rm            delete a previously saved password\n"   \
     "  backup        backup passwords and current key\n"     \
-    "  help          show this screen\n"                     \
+    "  help          display the help menu\n"                \
     "  version       show the version\n"
 
 #define CONFIG_DIR    ".pass"
 #define KEY_NAME      ".pass.key"
 #define IV_NAME       ".pass.iv"
+
 #define MAX_PASS_SIZE 4096
 
 /**
