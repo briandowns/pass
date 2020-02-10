@@ -13,6 +13,27 @@
 
 ## Examples
 
+Initialize pass.
+
+```sh
+pass init
+```
+
+```sh
+PASS_DIR=/path/to/somewhere pass init
+```
+
+Set a password.
+
+```sh
+pass set gmail.com
+```
+
+Retrieve a password.
+```sh
+pass get gmail.com
+```
+
 ## Requirements
 
 libsodium is used for cryptography and will need to be installed prior to compiling `pass`.
