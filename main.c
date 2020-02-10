@@ -337,9 +337,11 @@ main(int argc, char **argv)
             
             PASSWORD_FILE_PATH;
 
-            if (decrypt_password(fp, key) != 0) {
-                return 1;
-            }
+            if (access(fp, F_OK ) != -1) {
+                if (decrypt_password(fp, key) != 0) {
+                    return 1;
+                }
+            } 
 
             break;
         }
