@@ -13,7 +13,7 @@ Examples:
 .PP
     pass init
     pass set gmail.com
-    pass show gmail.com
+    pass get gmail.com
 
 The following options are available:
 .PP
@@ -23,7 +23,7 @@ The following options are available:
 Commands:
 .PP
     init          initialize pass
-    show          retrieve a previously saved password
+    get           retrieve a previously saved password
     set           save a password
     rm            delete a previously saved password
     backup        backup passwords and current key

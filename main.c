@@ -49,7 +49,7 @@
     "  -h            help\n\n"                               \
     "commands:\n"                                            \
     "  init          initialize pass\n"                      \
-    "  show          retrieve a previously saved password\n" \
+    "  get           retrieve a previously saved password\n" \
     "  set           save a password\n"                      \
     "  rm            delete a previously saved password\n"   \
     "  backup        backup passwords and current key\n"     \
@@ -332,7 +332,7 @@ main(int argc, char **argv)
             break;
         }
 
-        if (strcmp(argv[i], "show") == 0) {
+        if (strcmp(argv[i], "get") == 0) {
             COMMAND_ARG_ERR_CHECK;
             
             PASSWORD_FILE_PATH;
