@@ -70,14 +70,6 @@
     strcat(strcpy(base_dir, getenv("HOME")), "/" CONFIG_DIR)
 
 /**
- * INITIALIZE_DIR creates a hidden directory called
- * .pass in the user's home directory.
- */
-#define INITIALIZE_DIR    \
-    BASE_DIRECTORY;       \
-    mkdir(base_dir, 0700)
-
-/**
  * COMMAND_ARG_ERR_CHECK checks to make sure the 
  * there is an argument to the given command if 
  * if not, print an error and exit.
@@ -176,17 +168,17 @@ decrypt_password(const char *source_file, const unsigned char key[crypto_secrets
     unsigned char tag;
 
     FILE *fp_s = fopen(source_file, "rb");
+    fread(header, 1, sizeof(header), fp_s);
     
-    fread(header, 1, sizeof header, fp_s);
-
     if (crypto_secretstream_xchacha20poly1305_init_pull(&st, header, key) != 0) {
         goto ret;
     }
 
     do {
         size_t rlen = fread(buf_in, 1, sizeof buf_in, fp_s);
-
+        
         eof = feof(fp_s);
+        
         if (crypto_secretstream_xchacha20poly1305_pull(&st, buf_out, &out_len, &tag, buf_in, rlen, NULL, 0) != 0) {
             goto ret;
         }
@@ -194,7 +186,7 @@ decrypt_password(const char *source_file, const unsigned char key[crypto_secrets
         if (tag == crypto_secretstream_xchacha20poly1305_TAG_FINAL && ! eof) {
             goto ret;
         }
-        
+
         fwrite(buf_out, 1, (size_t)out_len, stdout);
         fwrite("\n", 1, (size_t)1, stdout);
     } while (!eof);
@@ -209,12 +201,12 @@ ret:
  * create_key generates a new AES key.
  */
 static int
-create_key(const char *kf) 
+create_key(const char *key_file) 
 {
     unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
     crypto_secretstream_xchacha20poly1305_keygen(key);
-
-    FILE *f = fopen(kf, "w");
+    printf("opening: %s\n", key_file);
+    FILE *f = fopen(key_file, "w");
     if (!f) {
         return 1;
     }
@@ -249,51 +241,65 @@ main(int argc, char **argv)
             printf(USAGE, STR(bin_name));
             return 0;
         }
+            
+        char pass_dir_path[PATH_MAX];
+        const char *pass_dir = getenv("PASS_DIR");
+        if ((pass_dir != NULL) && (pass_dir[0] != 0)) {
+            strcpy(pass_dir_path, pass_dir);
+        } else {
+            strcpy(pass_dir_path, getenv("HOME"));
+            strcat(pass_dir_path, "/" CONFIG_DIR);
+        }
+
+        char key_file_path[PATH_MAX];
+        const char *pass_key = getenv("PASS_KEY");
+        if ((pass_key != NULL) && (pass_key[0] == 0)) {
+            strcpy(key_file_path, pass_key);
+        } else {
+            strcpy(key_file_path, pass_dir_path);
+            strcat(key_file_path, "/");
+            strcat(key_file_path, KEY_NAME);
+        }
 
         if (strcmp(argv[i], "init") == 0) {
-            printf("creating directory: ~/.pass\n");
-
-            INITIALIZE_DIR;
-
-            char *kf = full_key_path();
-
-            if (access(kf, F_OK ) != -1) {
+            DIR* dir = opendir(pass_dir_path);
+            if (ENOENT == errno) {
+                printf("creating directory: %s\n", pass_dir_path);
+                mkdir(pass_dir_path, 0700);
+            } else {
+                closedir(dir);
+            }
+            
+            if (access(key_file_path, F_OK ) != -1) {
                 char answer;
                 printf("overwrite existing key? [Y/n] ");
                 scanf("%c", &answer);
                 if (answer == 'Y') {
-                    printf("creating key: ~/.pass/key\n");
-                    if (create_key(kf) != 0) {
+                    printf("creating key: %s\n", key_file_path);
+                    if (create_key(key_file_path) != 0) {
                         perror("failed to generate key");
                         return 1;
                     }
                 }
             } else {
-                printf("creating key: ~/.pass/key\n");
-                if (create_key(kf) != 0) {
-                    perror("failed to generate key");
+                printf("creating key: %s\n", key_file_path);
+                if (create_key(key_file_path) != 0) {
+                    perror("failed to create key");
                     return 1;
                 }
             }
-
-            free(kf);
 
             return 0;
         }
 
         unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
 
-        char *key_file = full_key_path();
-        FILE *key_fd = fopen(key_file, "r");
+        FILE *key_fd = fopen(key_file_path, "r");
         fread(&key, crypto_secretstream_xchacha20poly1305_KEYBYTES, 1, key_fd);
 
         if (strcmp(argv[i], "ls") == 0) {
-            char fp[PATH_MAX] = {0};
-            BASE_DIRECTORY;
-            strcpy(fp, base_dir);
-
             struct dirent *de;
-            DIR *dr = opendir(fp);
+            DIR *dr = opendir(pass_dir_path);
             if (dr == NULL) { 
                 printf("error: could not open current directory" ); 
                 return 1; 
@@ -328,7 +334,7 @@ main(int argc, char **argv)
 
         if (strcmp(argv[i], "show") == 0) {
             COMMAND_ARG_ERR_CHECK;
-
+            
             PASSWORD_FILE_PATH;
 
             if (decrypt_password(fp, key) != 0) {
@@ -368,7 +374,7 @@ main(int argc, char **argv)
             continue;
         }
 
-        free(key_file);
+        //free(key_file_path);
     }
 
     return 0;
