@@ -25,6 +25,7 @@ Commands:
     init          initialize pass
     get           retrieve a previously saved password
     set           save a password
+    ls            list passwords
     rm            delete a previously saved password
     config        show current configuration
     help          display the help menu

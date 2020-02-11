@@ -51,6 +51,7 @@
     "  init          initialize pass\n"                      \
     "  get           retrieve a previously saved password\n" \
     "  set           save a password\n"                      \
+    "  ls            list passwords\n"                       \
     "  rm            delete a previously saved password\n"   \
     "  config        show current configuration\n"           \
     "  help          display the help menu\n"                \
@@ -88,32 +89,12 @@
 BASE_DIRECTORY;                                     \
 strcpy(fp, base_dir);                               \
 strcat(fp, "/");                                    \
-strcat(fp, argv[i+1]); 
-
-// DATE_FORMAT for getting the year, month, and day in
-// yyyy-mm-dd format.
-#define DATE_FORMAT "%d-%02d-%02d" 
-#define DATE_BUF_SZ 11
+strcat(fp, argv[i+1]);
 
 #define KEY_OVERWRITE_MESSAGE !!!! WARNING !!!!           \
 This is a destructive action that will prevent previously \
 passwords from being retrieved. Please make sure this is  \
 what you want to do.
-
-/**
- * full_key_path returns the full path to the key file.
- * It's on the caller to free the allocated memory.
- */
-static char*
-full_key_path() 
-{
-    char *key_path = malloc(PATH_MAX);
-    strcpy(key_path, getenv("HOME"));
-    strcat(key_path, "/.pass/");
-    strcat(key_path, KEY_NAME);
-
-    return key_path; 
-}
 
 /**
  * encrypt_password encrypts the given password and saves the
@@ -306,7 +287,7 @@ main(int argc, char **argv)
             } 
   
             while ((de = readdir(dr)) != NULL) {
-                if (strstr(&de->d_name[0], ".") != NULL) {
+                if (de->d_name[0] == '.') {
                     continue;
                 }
                 printf("%s\n", de->d_name); 
