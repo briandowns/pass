@@ -1,13 +1,6 @@
 # pass
 
-`pass` is a very simple password manager inspired by `pass` but without the use of GnuPG. It uses `libsodium` for cryptography.
-
-## Features
-
-* Generate AES Keys
-* Save passwords
-* Retrieve passwords
-* Backup passwords and keys
+`pass` is a very simple password manager inspired by `pass` but uses `libsodium` for cryptography.
 
 ## Examples
 

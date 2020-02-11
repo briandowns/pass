@@ -53,7 +53,6 @@
     "  set           save a password\n"                      \
     "  rm            delete a previously saved password\n"   \
     "  config        show current configuration\n"           \
-    "  backup        backup passwords and current key\n"     \
     "  help          display the help menu\n"                \
     "  version       show the version\n"
 
@@ -353,19 +352,6 @@ main(int argc, char **argv)
             PASSWORD_FILE_PATH;
 
             remove(fp);
-
-            break;
-        }
-
-        if (strcmp(argv[i], "backup") == 0) {
-            time_t s = time(NULL);
-            struct tm *now = localtime(&s);
-
-            int year = now->tm_year + 1900;
-            int month = now->tm_mon + 1;
-
-            char today[DATE_BUF_SZ];
-            sprintf(today, DATE_FORMAT, year, month, now->tm_mday);
 
             break;
         }

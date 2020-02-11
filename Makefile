@@ -1,7 +1,7 @@
 CC                ?= cc
 DOCKER            ?= docker
 
-VERSION           := 0.1.0
+VERSION           := 0.2.0
 
 BINDIR            := bin
 BINARY            := pass
@@ -17,8 +17,7 @@ override CFLAGS  += -O3 \
 		-Dapp_name=$(BINARY) \
 		-Dgit_sha=$(shell git rev-parse HEAD) \
 		-Dapp_version=$(VERSION) \
-		-L$(PREFIX)/opt/openssl/lib -I$(PREFIX)/opt/openssl/include \
-		-L$(PREFIX)/opt/libarchive/lib -I$(PREFIX)/opt/libarchive/include
+		-L$(PREFIX)/opt/openssl/lib -I$(PREFIX)/opt/openssl/include
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 	$(CC) main.c $(CFLAGS) -o $@ $(LDFLAGS)
