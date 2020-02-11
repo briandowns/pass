@@ -52,13 +52,14 @@
     "  get           retrieve a previously saved password\n" \
     "  set           save a password\n"                      \
     "  rm            delete a previously saved password\n"   \
+    "  config        show current configuration\n"           \
     "  backup        backup passwords and current key\n"     \
     "  help          display the help menu\n"                \
     "  version       show the version\n"
 
-#define CONFIG_DIR    ".pass"
-#define KEY_NAME      ".pass.key"
-#define IV_NAME       ".pass.iv"
+#define CONFIG_DIR ".pass"
+#define KEY_NAME   ".pass.key"
+#define IV_NAME    ".pass.iv"
 
 #define MAX_PASS_SIZE 4096
 
@@ -369,14 +370,18 @@ main(int argc, char **argv)
             break;
         }
 
+        if (strcmp(argv[i], "config") == 0) {
+            printf("working directory: %s\n", pass_dir_path);
+            printf("key path         : %s\n", key_file_path);
+            break;
+        }
+
         if (strcmp(argv[i], "generate") == 0) {
             // generate password
             gen_first = 1;
 
             continue;
         }
-
-        //free(key_file_path);
     }
 
     return 0;
