@@ -1,7 +1,7 @@
 CC                ?= cc
 DOCKER            ?= docker
 
-VERSION           := 0.4.0
+VERSION           := 0.5.0
 
 BINDIR            := bin
 BINARY            := pass

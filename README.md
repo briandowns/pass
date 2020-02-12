@@ -1,6 +1,6 @@
 # pass
 
-`pass` is a very simple password manager inspired by `pass` but uses `libsodium` for cryptography.
+`pass` is a very simple password manager that uses `libsodium` for cryptography.
 
 ## Examples
 
