@@ -177,6 +177,7 @@ decrypt_password(const char *source_file, const unsigned char key[crypto_secrets
     ret = 0;
 ret:
     fclose(fp_s);
+    
     return ret;
 }
 
