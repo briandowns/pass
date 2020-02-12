@@ -9,7 +9,7 @@ tests/log.c
 
 .vscode
 
-bin/*
+bin
 
 tmp/
 encryption_stuff

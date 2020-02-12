@@ -18,11 +18,13 @@ Set a password.
 
 ```sh
 pass set gmail.com
+pass set email/yahoo.com
 ```
 
 Retrieve a password.
 ```sh
 pass get gmail.com
+pass get email/yahoo.com
 ```
 
 ## Requirements

@@ -27,6 +27,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <libgen.h>
 #ifdef __linux__
 #include <limits.h>
 #else
@@ -282,7 +283,7 @@ main(int argc, char **argv)
             struct dirent *de;
             DIR *dr = opendir(pass_dir_path);
             if (dr == NULL) { 
-                printf("error: could not open current directory" ); 
+                printf("error: could not open current directory"); 
                 return 1; 
             } 
   
@@ -306,6 +307,10 @@ main(int argc, char **argv)
 
             PASSWORD_FILE_PATH;
 
+            if (strchr(fp, '/') != NULL) {
+                mkdir(dirname(fp), 0700);
+            }
+
             if (encrypt_password(fp, pass_buf, key) != 0) {
                 return 1;
             }
@@ -315,7 +320,6 @@ main(int argc, char **argv)
 
         if (strcmp(argv[i], "get") == 0) {
             COMMAND_ARG_ERR_CHECK;
-            
             PASSWORD_FILE_PATH;
 
             if (access(fp, F_OK ) != -1) {
@@ -329,7 +333,6 @@ main(int argc, char **argv)
 
         if (strcmp(argv[i], "rm") == 0) {
             COMMAND_ARG_ERR_CHECK;
-
             PASSWORD_FILE_PATH;
 
             remove(fp);
