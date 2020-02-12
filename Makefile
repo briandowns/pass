@@ -16,8 +16,7 @@ override LDFLAGS += -lsodium
 override CFLAGS  += -O3 \
 		-Dapp_name=$(BINARY) \
 		-Dgit_sha=$(shell git rev-parse HEAD) \
-		-Dapp_version=$(VERSION) \
-		-L$(PREFIX)/opt/openssl/lib -I$(PREFIX)/opt/openssl/include
+		-Dapp_version=$(VERSION)
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 	$(CC) main.c $(CFLAGS) -o $@ $(LDFLAGS)
