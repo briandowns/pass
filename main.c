@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -199,6 +200,44 @@ create_key(const char *key_file)
     return 0;
 }
 
+/**
+ * list prints the given directory tree 
+ * recursively.
+ */
+static void
+list(const char *name, const int indent)
+{
+    DIR *dir;
+    struct dirent *de;
+
+    if (!(dir = opendir(name))) {
+        return;
+    }
+
+    while ((de = readdir(dir)) != NULL) {
+        if (de->d_name[0] == '.') {
+                continue;
+        }
+
+        if (de->d_type == DT_DIR) {
+            char path[PATH_MAX];
+            
+            if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) {
+                continue;
+            }
+        
+            snprintf(path, sizeof(path), "%s/%s", name, de->d_name);
+            printf("%*s- %s/\n", indent, "", de->d_name);
+            
+            list(path, indent + 4);
+        } else {
+            printf("%*s- %s\n", indent, "", de->d_name);
+        }
+    }
+
+    closedir(dir);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -280,21 +319,23 @@ main(int argc, char **argv)
         fread(&key, crypto_secretstream_xchacha20poly1305_KEYBYTES, 1, key_fd);
 
         if (strcmp(argv[i], "ls") == 0) {
-            struct dirent *de;
-            DIR *dr = opendir(pass_dir_path);
-            if (dr == NULL) { 
-                printf("error: could not open current directory"); 
-                return 1; 
-            } 
+            // struct dirent *de;
+            // DIR *dr = opendir(pass_dir_path);
+            // if (dr == NULL) { 
+            //     printf("error: could not open current directory"); 
+            //     return 1; 
+            // } 
   
-            while ((de = readdir(dr)) != NULL) {
-                if (de->d_name[0] == '.') {
-                    continue;
-                }
-                printf("%s\n", de->d_name); 
-            }
+            // while ((de = readdir(dr)) != NULL) {
+            //     if (de->d_name[0] == '.') {
+            //         continue;
+            //     }
+            //     printf("%s\n", de->d_name); 
+            // }
         
-            closedir(dr);
+            // closedir(dr);
+
+            list(pass_dir_path, 0);
 
             break;
         }
