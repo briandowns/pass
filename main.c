@@ -320,23 +320,12 @@ main(int argc, char **argv)
         fread(&key, crypto_secretstream_xchacha20poly1305_KEYBYTES, 1, key_fd);
 
         if (strcmp(argv[i], "ls") == 0) {
-            // struct dirent *de;
-            // DIR *dr = opendir(pass_dir_path);
-            // if (dr == NULL) { 
-            //     printf("error: could not open current directory"); 
-            //     return 1; 
-            // } 
-  
-            // while ((de = readdir(dr)) != NULL) {
-            //     if (de->d_name[0] == '.') {
-            //         continue;
-            //     }
-            //     printf("%s\n", de->d_name); 
-            // }
-        
-            // closedir(dr);
-
-            list(pass_dir_path, 0);
+            if (argc == 3) {
+                PASSWORD_FILE_PATH;
+                list(fp, 0);
+            } else {
+                list(pass_dir_path, 0);
+            }
 
             break;
         }
