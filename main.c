@@ -60,8 +60,8 @@
     "  version       show the version\n"
 
 #define CONFIG_DIR ".pass"
-#define KEY_NAME   ".pass.key"
-#define IV_NAME    ".pass.iv"
+#define KEY_NAME   "pass.key"
+#define IV_NAME    "pass.iv"
 
 #define MAX_PASS_SIZE 4096
 
@@ -116,12 +116,13 @@ encrypt_password(const char *target_file, const char *password, const unsigned c
     unsigned char tag;
     
     fp_t = fopen(target_file, "wb");
-
-    crypto_secretstream_xchacha20poly1305_init_push(&st, header, key);
+    printf("%s, %s, %s\n", target_file, password, key);
+    crypto_secretstream_xchacha20poly1305_init_push(&st, header, &key);
 
     fwrite(header, 1, sizeof header, fp_t);
 
     do {
+        
         tag = eof ? crypto_secretstream_xchacha20poly1305_TAG_FINAL : 0;
         crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, strlen(password), NULL, 0, tag);
         fwrite(buf_out, 1, (size_t)out_len, fp_t);
@@ -333,7 +334,7 @@ main(int argc, char **argv)
         if (strcmp(argv[i], "set") == 0) {
             COMMAND_ARG_ERR_CHECK;
 
-            char pass_buf[MAX_PASS_SIZE] = {0};
+            char *pass_buf = malloc(MAX_PASS_SIZE);
             strcpy(pass_buf, getpass("enter password: "));
 
             PASSWORD_FILE_PATH;
@@ -345,7 +346,8 @@ main(int argc, char **argv)
             if (encrypt_password(fp, pass_buf, key) != 0) {
                 return 1;
             }
-
+            free(pass_buf);
+    
             break;
         }
 
