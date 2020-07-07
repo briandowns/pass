@@ -116,20 +116,19 @@ encrypt_password(const char *target_file, const char *password, const unsigned c
     unsigned char tag;
     
     fp_t = fopen(target_file, "wb");
-    printf("%s, %s, %s\n", target_file, password, key);
     crypto_secretstream_xchacha20poly1305_init_push(&st, header, &key);
 
     fwrite(header, 1, sizeof header, fp_t);
 
-    do {
-        
+    do {   
+        printf("here\n");
         tag = eof ? crypto_secretstream_xchacha20poly1305_TAG_FINAL : 0;
         crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, strlen(password), NULL, 0, tag);
         fwrite(buf_out, 1, (size_t)out_len, fp_t);
     } while (!eof);
 
     fclose(fp_t);
-
+    
     return 0;
 }
 
@@ -340,7 +339,9 @@ main(int argc, char **argv)
             PASSWORD_FILE_PATH;
 
             if (strchr(fp, '/') != NULL) {
-                mkdir(dirname(fp), 0700);
+                char *temp_fp = strdup(fp);
+                mkdir(dirname(temp_fp), 0700);
+                free(temp_fp);
             }
 
             if (encrypt_password(fp, pass_buf, key) != 0) {
