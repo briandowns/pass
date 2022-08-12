@@ -339,7 +339,10 @@ main(int argc, char **argv)
             PASSWORD_FILE_PATH;
 
             if (strchr(fp, '/') != NULL) {
-                mkdir(dirname(fp), 0700);
+                //mkdir(dirname(fp), 0700);
+                char *temp_fp = strdup(fp);
+                mkdir(dirname(temp_fp), 0700);
+                free(temp_fp);
             }
 
             if (encrypt_password(fp, pass_buf, key) != 0) {
