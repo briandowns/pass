@@ -1,7 +1,7 @@
 CC                ?= cc
 DOCKER            ?= docker
 
-VERSION           := 0.7.0
+VERSION           := 0.8.0
 
 BINDIR            := bin
 BINARY            := pass
@@ -16,10 +16,15 @@ override LDFLAGS += -lsodium
 override CFLAGS  += -O3 \
 		-Dapp_name=$(BINARY) \
 		-Dgit_sha=$(shell git rev-parse HEAD) \
-		-Dapp_version=$(VERSION)
+		-Dapp_version=$(VERSION) \
+		-DSODIUM_STATIC=1
+ifneq ($(UNAME_S),Darwin)
+CFLAGS += -static
+endif
+
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
-	$(CC) main.c $(CFLAGS) -o $@ $(LDFLAGS)
+	$(CC) main.c pass.c $(CFLAGS) -o $@ $(LDFLAGS)
 
 $(BINDIR):
 	mkdir -p $@
