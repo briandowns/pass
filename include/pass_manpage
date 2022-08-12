@@ -25,10 +25,11 @@ Commands:
     init          initialize pass
     get           retrieve a previously saved password
     set           save a password
-    ls|list       list passwords
-    rm|remove     delete a previously saved password
-    config        show current configuration
+    ls,list       list passwords
+    rm,remove     delete a previously saved password
     check         checks the given password's complexity
+    gen,generate  generates a secure password
+    config        show current configuration
     help          display the help menu
     version       show the version
 

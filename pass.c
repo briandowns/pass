@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "pass.h"
 
@@ -10,16 +11,22 @@
 #define NUMBER_CHARS "0123456789"
 #define UPPER_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define LOWER_CHARS "abcdefghijklmnopqrstuvwxyz"
-#define ALL_CHARsS UPPER_CHARS LOWER_CHARS NUMBER_CHARS SPECIAL_CHARS
+#define ALL_CHARS UPPER_CHARS LOWER_CHARS NUMBER_CHARS SPECIAL_CHARS
 
 #define WORD_LOCATION "/usr/share/dict/words"
 
-// generate creates a password with the given size. The 
-// returned string will need to be freed by the caller.
 char*
-generate_password(int size)
+generate_password(const int size)
 {
-    return 0;
+    srand(time(NULL));
+
+    char *password = malloc(MAX_PASS_SIZE);
+
+    for(int i = 0; i < size; i++) {
+        password[i] = ALL_CHARS[rand() % (sizeof(ALL_CHARS) - 1)];
+    }
+
+    return password;
 }
 
 // in_dict checks to see if the given password is in the 

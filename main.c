@@ -55,10 +55,11 @@
     "  init          initialize pass\n"                        \
     "  get           retrieve a previously saved password\n"   \
     "  set           save a password\n"                        \
-    "  ls|list       list passwords\n"                         \
-    "  rm|remove     delete a previously saved password\n"     \
-    "  config        show current configuration\n"             \
+    "  ls,list       list passwords\n"                         \
+    "  rm,remove     delete a previously saved password\n"     \
     "  check         checks the given password's complexity\n" \
+    "  gen,generate  generates a secure password\n"            \
+    "  config        show current configuration\n"             \
     "  help          display the help menu\n"                  \
     "  version       show the version\n"
 
@@ -381,10 +382,15 @@ main(int argc, char **argv)
         }
 
         if (strcmp(argv[i], "generate") == 0) {
-            // generate password
-            gen_first = 1;
+            COMMAND_ARG_ERR_CHECK;
 
-            continue;
+            int size = atoi(argv[2]);
+            char *pass = generate_password(size);
+
+            printf("%s\n", pass);
+            free(pass);
+            
+            break;
         }
 
         if (strcmp(argv[i], "check") == 0) {
