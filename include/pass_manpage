@@ -17,8 +17,8 @@ Examples:
 
 The following options are available:
 .PP
-    -v      Display the version of pass currently installed.
-    -h      Display the help menu.
+    -v      Display version
+    -h      Display help menu
 .PP
 Commands:
 .PP

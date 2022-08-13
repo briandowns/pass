@@ -5,6 +5,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <sodium.h>
+
 #include "pass.h"
 
 #define SPECIAL_CHARS "!@#$%^&*()-_=+,.?/:;{}[]~"
@@ -23,7 +25,7 @@ generate_password(const int size)
     char *password = malloc(MAX_PASS_SIZE);
 
     for(int i = 0; i < size; i++) {
-        password[i] = ALL_CHARS[rand() % (sizeof(ALL_CHARS) - 1)];
+        password[i] = ALL_CHARS[randombytes_random() % (sizeof(ALL_CHARS) - 1)];
     }
 
     return password;
