@@ -112,12 +112,11 @@ encrypt_password(const char *target_file, const char *password, const unsigned c
     
     crypto_secretstream_xchacha20poly1305_state st;
 
-    FILE *fp_t;
     unsigned long long out_len;
     int eof;
     unsigned char tag;
     
-    fp_t = fopen(target_file, "wb");
+    FILE *fp_t = fopen(target_file, "wb");
 
     crypto_secretstream_xchacha20poly1305_init_push(&st, header, key);
 
@@ -191,7 +190,7 @@ create_key(const char *key_file)
 {
     unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
     crypto_secretstream_xchacha20poly1305_keygen(key);
-    printf("opening: %s\n", key_file);
+
     FILE *f = fopen(key_file, "w");
     if (!f) {
         return 1;
@@ -239,6 +238,26 @@ list(const char *name, const int indent)
     }
 
     closedir(dir);
+}
+
+static void
+mkdir_p(const char *dir)
+{
+    char tmp[256];
+    char *p = NULL;
+    size_t len;
+
+    snprintf(tmp, sizeof(tmp),"%s",dir);
+    len = strlen(tmp);
+    if (tmp[len - 1] == '/')
+        tmp[len - 1] = 0;
+    for (p = tmp + 1; *p; p++)
+        if (*p == '/') {
+            *p = 0;
+            mkdir(tmp, S_IRWXU);
+            *p = '/';
+        }
+    mkdir(tmp, S_IRWXU);
 }
 
 int
@@ -342,7 +361,7 @@ main(int argc, char **argv)
 
             if (strchr(fp, '/') != NULL) {
                 char *temp_fp = strdup(fp);
-                mkdir(dirname(temp_fp), 0700);
+                mkdir_p(dirname(temp_fp));
                 free(temp_fp);
             }
 
@@ -389,7 +408,7 @@ main(int argc, char **argv)
 
             printf("%s\n", pass);
             free(pass);
-            
+
             break;
         }
 

@@ -18,34 +18,28 @@ override CFLAGS  += -O3 \
 		-Dgit_sha=$(shell git rev-parse HEAD) \
 		-Dapp_version=$(VERSION) \
 		-DSODIUM_STATIC=1
-ifneq ($(UNAME_S),Darwin)
-CFLAGS += -static
-endif
-
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
+ifeq ($(UNAME_S),Darwin)
 	$(CC) main.c pass.c $(CFLAGS) -o $@ $(LDFLAGS)
+else
+	$(CC) main.c pass.c $(CFLAGS) -o $@ -static $(LDFLAGS)
+endif
 
 $(BINDIR):
 	mkdir -p $@
 
-$(DEPDIR):
-	mkdir -p $@
-
 .PHONY: install
-install: $(BINDIR)/$(BINARY) $(BINDIR)
-	cp $(BINDIR)/$(BINARY) $(PREFIX)/bin
+install: $(BINDIR)/$(BINARY)
+	install -s $(BINDIR)/$(BINARY) $(PREFIX)/bin
 
 .PHONY: uninstall
 uninstall:
 	rm -f $(PREFIX)/$(BINDIR)/$(BINARY)
 
-.PHONY: deps
-deps: $(DEPDIR)
-
 .PHONY: clean
 clean:
-	rm -f $(BINDIR)/*
+	rm -f $(BINDIR)/$(BINARY)
 
 .PHONY: manpage
 manpage:
