@@ -271,8 +271,6 @@ main(int argc, char **argv)
     if (sodium_init() != 0) {
         return 1;
     }
-
-    int gen_first = 0;
     
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "version") == 0) {
@@ -400,7 +398,7 @@ main(int argc, char **argv)
             break;
         }
 
-        if (strcmp(argv[i], "generate") == 0) {
+        if ((strcmp(argv[i], "gen") == 0) || (strcmp(argv[i], "generate") == 0)) {
             COMMAND_ARG_ERR_CHECK;
 
             int size = atoi(argv[2]);

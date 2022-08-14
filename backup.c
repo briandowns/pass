@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 
 #include <sodium.h>
@@ -14,7 +15,8 @@
 }
 
 static int
-encrypt_archive(const char *in_file, const char *out_file, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]) {
+encrypt_archive(const char *in_file, const char *out_file, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES])
+{
     unsigned char bufferIn[MAX_PASS_SIZE];
     unsigned char bufferOut[MAX_PASS_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
     unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
@@ -46,7 +48,9 @@ encrypt_archive(const char *in_file, const char *out_file, const unsigned char k
     return 0;
 }
 
-int decrypt_file(const char *fileToDecrypt, const char *outputFile, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]) {
+static int
+decrypt_archive(const char *fileToDecrypt, const char *outputFile, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES])
+{
     unsigned char bufferIn[MAX_PASS_SIZE];
     unsigned char bufferOut[MAX_PASS_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
     unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
@@ -59,12 +63,11 @@ int decrypt_file(const char *fileToDecrypt, const char *outputFile, const unsign
     int ret = -1;
     unsigned char tag;
 
-    log_debug("Opening file to decrypt in rb mode");
     openFileToDecrypt = fopen(fileToDecrypt, "rb");
-    log_debug("Opening output file in wb mode");
     openOutputFile = fopen(outputFile, "wb");
+
     fread(header, 1, sizeof header, openFileToDecrypt);
-    if (crypto_secretstream_xchacha20poly1305_init_pull(&st, header, generatedCryptoKey) != 0) {
+    if (crypto_secretstream_xchacha20poly1305_init_pull(&st, header, key) != 0) {
         goto ret; /* incomplete header */
     }
     do {
@@ -81,25 +84,125 @@ int decrypt_file(const char *fileToDecrypt, const char *outputFile, const unsign
 
     ret = 0;
     ret:
-    log_debug("Closing open output file");
-    fclose(openOutputFile);
-    log_debug("Closing open file to decrypt");
-    fclose(openFileToDecrypt);
-
-    //Zero out key in memory
-    log_debug("Zeroing crypto key in memory using sodium_memzero() function");
-    sodium_memzero(generatedCryptoKey, sizeof(generatedCryptoKey));
-    log_info("File decryption finished");
+        fclose(openOutputFile);
+        fclose(openFileToDecrypt);
 
     return ret;
 }
 
+#define CHUNK 16384
 
-void
-decrypt_archive();
+// compress_archive
+static int
+compress_archive(FILE *source, FILE *dest) 
+{
+    int ret;
+    unsigned have;
+    z_stream strm;
+    char in[CHUNK];
+    char out[CHUNK];
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit(&strm);
+    if (ret != Z_OK)
+        return ret;
+    /* decompress until deflate stream ends or end of file */
+    do {
+        strm.avail_in = fread(in, 1, CHUNK, source);
+        if (ferror(source)) {
+            (void)inflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        if (strm.avail_in == 0)
+            break;
+        strm.next_in = in;
+        /* run inflate() on input until output buffer not full */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = inflate(&strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            switch (ret) {
+            case Z_NEED_DICT:
+                ret = Z_DATA_ERROR;     /* and fall through */
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                (void)inflateEnd(&strm);
+                return ret;
+            }
+            have = CHUNK - strm.avail_out;
+            if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
+                (void)inflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+        /* done when inflate() says it's done */
+    } while (ret != Z_STREAM_END);
+    /* clean up and return */
+    (void)inflateEnd(&strm);
+    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
+}
 
-void
-compress_archive();
+// decompress_archive
+// static int
+// decompress_archive(FILE *source, FILE *dest)
+// {
+//     int ret, flush;
+//     unsigned have;
+//     z_stream strm;
+//     char in[CHUNK];
+//     char out[CHUNK];
+//     /* allocate deflate state */
+//     strm.zalloc = Z_NULL;
+//     strm.zfree = Z_NULL;
+//     strm.opaque = Z_NULL;
+//     ret = deflateInit(&strm, level);
+//     if (ret != Z_OK)
+//         return ret;
+//     /* compress until end of file */
+//     do {
+//         strm.avail_in = fread(in, 1, CHUNK, source);
+//         if (ferror(source)) {
+//             (void)deflateEnd(&strm);
+//             return Z_ERRNO;
+//         }
+//         flush = feof(source) ? Z_FINISH : Z_NO_FLUSH;
+//         strm.next_in = in;
+//         /* run deflate() on input until output buffer not full, finish
+//            compression if all of source has been read in */
+//         do {
+//             strm.avail_out = CHUNK;
+//             strm.next_out = out;
+//             ret = deflate(&strm, flush);    /* no bad return value */
+//             assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+//             have = CHUNK - strm.avail_out;
+//             if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
+//                 (void)deflateEnd(&strm);
+//                 return Z_ERRNO;
+//             }
+//         } while (strm.avail_out == 0);
+//         assert(strm.avail_in == 0);     /* all input will be used */
+//         /* done when last data in file processed */
+//     } while (flush != Z_FINISH);
+//     assert(ret == Z_STREAM_END);        /* stream will be complete */
+//     /* clean up and return */
+//     (void)deflateEnd(&strm);
+    
+//     return Z_OK;
+// }
 
-void
-decompress_archive();
+int
+backup_export()
+{
+    return 0;
+}
+
+int
+backup_import()
+{
+    return 0;
+}
