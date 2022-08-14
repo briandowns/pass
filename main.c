@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2020 Brian J. Downs
+ * Copyright (c) 2022 Brian J. Downs
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,34 +42,36 @@
 
 #include <sodium.h>
 
+#include "pass.h"
+
 #define STR1(x) #x
 #define STR(x) STR1(x)
 
-#define USAGE                                                \
-    "usage: %s [-vh]\n"                                      \
-    "  -v            version\n"                              \
-    "  -h            help\n\n"                               \
-    "commands:\n"                                            \
-    "  init          initialize pass\n"                      \
-    "  get           retrieve a previously saved password\n" \
-    "  set           save a password\n"                      \
-    "  ls            list passwords\n"                       \
-    "  rm            delete a previously saved password\n"   \
-    "  config        show current configuration\n"           \
-    "  help          display the help menu\n"                \
+#define USAGE                                                  \
+    "usage: %s [-vh]\n"                                        \
+    "  -v            version\n"                                \
+    "  -h            help\n\n"                                 \
+    "commands:\n"                                              \
+    "  init          initialize pass\n"                        \
+    "  get           retrieve a previously saved password\n"   \
+    "  set           save a password\n"                        \
+    "  ls,list       list passwords\n"                         \
+    "  rm,remove     delete a previously saved password\n"     \
+    "  check         checks the given password's complexity\n" \
+    "  gen,generate  generates a secure password\n"            \
+    "  config        show current configuration\n"             \
+    "  help          display the help menu\n"                  \
     "  version       show the version\n"
 
 #define CONFIG_DIR ".pass"
 #define KEY_NAME   ".pass.key"
 #define IV_NAME    ".pass.iv"
 
-#define MAX_PASS_SIZE 4096
-
 /**
  * BASE_DIRECTORY returns the pass base directory.
  */
-#define BASE_DIRECTORY                                       \
-    char base_dir[PATH_MAX];                                 \
+#define BASE_DIRECTORY       \
+    char base_dir[PATH_MAX]; \
     strcat(strcpy(base_dir, getenv("HOME")), "/" CONFIG_DIR)
 
 /**
@@ -110,12 +112,11 @@ encrypt_password(const char *target_file, const char *password, const unsigned c
     
     crypto_secretstream_xchacha20poly1305_state st;
 
-    FILE *fp_t;
     unsigned long long out_len;
     int eof;
     unsigned char tag;
     
-    fp_t = fopen(target_file, "wb");
+    FILE *fp_t = fopen(target_file, "wb");
 
     crypto_secretstream_xchacha20poly1305_init_push(&st, header, key);
 
@@ -189,7 +190,7 @@ create_key(const char *key_file)
 {
     unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
     crypto_secretstream_xchacha20poly1305_keygen(key);
-    printf("opening: %s\n", key_file);
+
     FILE *f = fopen(key_file, "w");
     if (!f) {
         return 1;
@@ -239,6 +240,26 @@ list(const char *name, const int indent)
     closedir(dir);
 }
 
+static void
+mkdir_p(const char *dir)
+{
+    char tmp[256];
+    char *p = NULL;
+    size_t len;
+
+    snprintf(tmp, sizeof(tmp),"%s",dir);
+    len = strlen(tmp);
+    if (tmp[len - 1] == '/')
+        tmp[len - 1] = 0;
+    for (p = tmp + 1; *p; p++)
+        if (*p == '/') {
+            *p = 0;
+            mkdir(tmp, S_IRWXU);
+            *p = '/';
+        }
+    mkdir(tmp, S_IRWXU);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -250,8 +271,6 @@ main(int argc, char **argv)
     if (sodium_init() != 0) {
         return 1;
     }
-
-    int gen_first = 0;
     
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "version") == 0) {
@@ -319,7 +338,7 @@ main(int argc, char **argv)
         FILE *key_fd = fopen(key_file_path, "r");
         fread(&key, crypto_secretstream_xchacha20poly1305_KEYBYTES, 1, key_fd);
 
-        if (strcmp(argv[i], "ls") == 0) {
+        if ((strcmp(argv[i], "ls") == 0) || (strcmp(argv[i], "list") == 0)) {
             if (argc == 3) {
                 PASSWORD_FILE_PATH;
                 list(fp, 0);
@@ -339,9 +358,8 @@ main(int argc, char **argv)
             PASSWORD_FILE_PATH;
 
             if (strchr(fp, '/') != NULL) {
-                //mkdir(dirname(fp), 0700);
                 char *temp_fp = strdup(fp);
-                mkdir(dirname(temp_fp), 0700);
+                mkdir_p(dirname(temp_fp));
                 free(temp_fp);
             }
 
@@ -365,7 +383,7 @@ main(int argc, char **argv)
             break;
         }
 
-        if (strcmp(argv[i], "rm") == 0) {
+        if ((strcmp(argv[i], "rm") == 0) || (strcmp(argv[i], "remove") == 0)) {
             COMMAND_ARG_ERR_CHECK;
             PASSWORD_FILE_PATH;
 
@@ -375,16 +393,29 @@ main(int argc, char **argv)
         }
 
         if (strcmp(argv[i], "config") == 0) {
-            printf("working directory: %s\n", pass_dir_path);
-            printf("key path         : %s\n", key_file_path);
+            printf("path: %s\n", pass_dir_path);
+            printf("key : %s\n", key_file_path);
             break;
         }
 
-        if (strcmp(argv[i], "generate") == 0) {
-            // generate password
-            gen_first = 1;
+        if ((strcmp(argv[i], "gen") == 0) || (strcmp(argv[i], "generate") == 0)) {
+            COMMAND_ARG_ERR_CHECK;
 
-            continue;
+            int size = atoi(argv[2]);
+            char *pass = generate_password(size);
+
+            printf("%s\n", pass);
+            free(pass);
+
+            break;
+        }
+
+        if (strcmp(argv[i], "check") == 0) {
+            COMMAND_ARG_ERR_CHECK;
+
+            check(argv[2]);
+
+            break;
         }
     }
 

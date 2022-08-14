@@ -17,16 +17,18 @@ Examples:
 
 The following options are available:
 .PP
-    -v      Display the version of pass currently installed.
-    -h      Display the help menu.
+    -v      Display version
+    -h      Display help menu
 .PP
 Commands:
 .PP
     init          initialize pass
     get           retrieve a previously saved password
     set           save a password
-    ls            list passwords
-    rm            delete a previously saved password
+    ls,list       list passwords
+    rm,remove     delete a previously saved password
+    check         checks the given password's complexity
+    gen,generate  generates a secure password
     config        show current configuration
     help          display the help menu
     version       show the version
@@ -34,7 +36,7 @@ Commands:
 .SH BUGS
 No known bugs. Please log any issues to github.com/briandowns/pass/issues
 .SH LICENSE
-Copyright 2020 <Brian J. Downs>
+Copyright 2022 <Brian J. Downs>
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 

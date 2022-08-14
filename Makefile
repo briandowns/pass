@@ -1,7 +1,7 @@
 CC                ?= cc
 DOCKER            ?= docker
 
-VERSION           := 0.7.0
+VERSION           := 0.8.0
 
 BINDIR            := bin
 BINARY            := pass
@@ -16,31 +16,30 @@ override LDFLAGS += -lsodium
 override CFLAGS  += -O3 \
 		-Dapp_name=$(BINARY) \
 		-Dgit_sha=$(shell git rev-parse HEAD) \
-		-Dapp_version=$(VERSION)
+		-Dapp_version=$(VERSION) \
+		-DSODIUM_STATIC=1
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
-	$(CC) main.c $(CFLAGS) -o $@ $(LDFLAGS)
+ifeq ($(UNAME_S),Darwin)
+	$(CC) main.c pass.c $(CFLAGS) -o $@ $(LDFLAGS)
+else
+	$(CC) main.c pass.c $(CFLAGS) -o $@ -static $(LDFLAGS)
+endif
 
 $(BINDIR):
 	mkdir -p $@
 
-$(DEPDIR):
-	mkdir -p $@
-
 .PHONY: install
-install: $(BINDIR)/$(BINARY) $(BINDIR)
-	cp $(BINDIR)/$(BINARY) $(PREFIX)/bin
+install: $(BINDIR)/$(BINARY)
+	install -s $(BINDIR)/$(BINARY) $(PREFIX)/bin
 
 .PHONY: uninstall
 uninstall:
 	rm -f $(PREFIX)/$(BINDIR)/$(BINARY)
 
-.PHONY: deps
-deps: $(DEPDIR)
-
 .PHONY: clean
 clean:
-	rm -f $(BINDIR)/*
+	rm -f $(BINDIR)/$(BINARY)
 
 .PHONY: manpage
 manpage:
