@@ -1,7 +1,7 @@
 CC                ?= cc
 DOCKER            ?= docker
 
-VERSION           := 0.8.0
+VERSION           := 0.9.0
 
 BINDIR            := bin
 BINARY            := pass
@@ -9,8 +9,9 @@ PREFIX            := /usr/local
 
 UNAME_S           := $(shell uname -s)
 
+INCDIR            = include
 MACOS_MANPAGE_LOC = /usr/share/man
-LINUX_MAPPAGE_LOC = $(PREFIX)/man/man8
+LINUX_MAPPAGE_LOC = $(PREFIX)/man/man1
 
 override LDFLAGS += -lsodium
 override CFLAGS  += -O3 \

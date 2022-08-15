@@ -1,10 +1,10 @@
 # pass
 
-`pass` is a very simple password manager that uses `libsodium` for cryptography.
+`pass` is a simple password manager.
 
 ## Examples
 
-Initialize pass.
+Initialize `pass`. This is necessary to create a new key and setup the base directory structure.
 
 ```sh
 pass init
@@ -14,17 +14,49 @@ pass init
 PASS_DIR=/path/to/somewhere pass init
 ```
 
-Set a password.
-
+Store a password:
 ```sh
-pass set gmail.com
-pass set email/yahoo.com
+pass set email/gmail
+pass set email/yahoo
 ```
 
-Retrieve a password.
+Retrieve a password:
 ```sh
-pass get gmail.com
-pass get email/yahoo.com
+pass get email/gmail
+pass get email/yahoo
+```
+
+List passwords:
+```sh
+pass ls
+- video/
+    - netflix
+    - espn
+- social/
+    - twitter
+- audio/
+    - spotify
+- banks/
+    - bofa
+- email/
+    - suse
+    - gmail
+```
+
+Generate a new password with a length of 12:
+```sh
+pass gen 12
+```
+
+Check the complexity of a password:
+```sh
+$ pass check 'asd7sjshs5('
+report:
+  greater than 8: y
+  has lower:      y
+  has upper:      n
+  has special:    y
+  in dictionary:  n
 ```
 
 ## Requirements
@@ -41,24 +73,16 @@ libsodium is used for cryptography and will need to be installed prior to compil
 
 * Apt
 
-`sudo apt-get install -y libsodium-dev`
+`apt-get install -y libsodium-dev`
 
-## Build
+* Apk
 
-```sh
-make
-```
+`apk add libsodium-static libsodium-dev`
 
-## Install 
+## Build & Install
 
 ```sh
 make install
-```
-
-## Test
-
-```sh
-make test
 ```
 
 ## Contact

@@ -47,6 +47,21 @@
 #define STR1(x) #x
 #define STR(x) STR1(x)
 
+#define CONFIG_DIR ".pass"
+
+/**
+ * COMMAND_ARG_ERR_CHECK checks to make sure the 
+ * there is an argument to the given command if 
+ * if not, print an error and exit.
+ */
+#define COMMAND_ARG_ERR_CHECK if (argc != 3) {        \
+    printf("error: %s requires argument\n", argv[i]); \
+    return 1;                                         \
+}
+
+#define KEY_NAME   ".pass.key"
+#define IV_NAME    ".pass.iv"
+
 #define USAGE                                                  \
     "usage: %s [-vh]\n"                                        \
     "  -v            version\n"                                \
@@ -62,145 +77,6 @@
     "  config        show current configuration\n"             \
     "  help          display the help menu\n"                  \
     "  version       show the version\n"
-
-#define CONFIG_DIR ".pass"
-#define KEY_NAME   ".pass.key"
-#define IV_NAME    ".pass.iv"
-
-/**
- * BASE_DIRECTORY returns the pass base directory.
- */
-#define BASE_DIRECTORY       \
-    char base_dir[PATH_MAX]; \
-    strcat(strcpy(base_dir, getenv("HOME")), "/" CONFIG_DIR)
-
-/**
- * COMMAND_ARG_ERR_CHECK checks to make sure the 
- * there is an argument to the given command if 
- * if not, print an error and exit.
- */
-#define COMMAND_ARG_ERR_CHECK if (argc != 3) {        \
-    printf("error: %s requires argument\n", argv[i]); \
-    return 1;                                         \
-}
-
-/**
- * PASSWORD_FILE_PATH creates a string containing the 
- * path to the password file derived from the given
- * argument.
- */
-#define PASSWORD_FILE_PATH char fp[PATH_MAX] = {0}; \
-BASE_DIRECTORY;                                     \
-strcpy(fp, base_dir);                               \
-strcat(fp, "/");                                    \
-strcat(fp, argv[i+1]);
-
-#define KEY_OVERWRITE_MESSAGE !!!! WARNING !!!!           \
-This is a destructive action that will prevent previously \
-passwords from being retrieved. Please make sure this is  \
-what you want to do.
-
-/**
- * encrypt_password encrypts the given password and saves the
- * encrypted cipher to a file in the user's pass directory.
- */
-static int
-encrypt_password(const char *target_file, const char *password, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]) {
-    unsigned char buf_in[MAX_PASS_SIZE];
-    unsigned char buf_out[MAX_PASS_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
-    unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
-    
-    crypto_secretstream_xchacha20poly1305_state st;
-
-    unsigned long long out_len;
-    int eof;
-    unsigned char tag;
-    
-    FILE *fp_t = fopen(target_file, "wb");
-
-    crypto_secretstream_xchacha20poly1305_init_push(&st, header, key);
-
-    fwrite(header, 1, sizeof header, fp_t);
-
-    do {
-        tag = eof ? crypto_secretstream_xchacha20poly1305_TAG_FINAL : 0;
-        crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, strlen(password), NULL, 0, tag);
-        fwrite(buf_out, 1, (size_t)out_len, fp_t);
-    } while (!eof);
-
-    fclose(fp_t);
-
-    return 0;
-}
-
-/**
- * decrypt_password decrypts the given file and prints out the 
- * contents to stdout.
- */
-static int
-decrypt_password(const char *source_file, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES])
-{
-    unsigned char buf_in[MAX_PASS_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
-    unsigned char buf_out[MAX_PASS_SIZE];
-    unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
-
-    crypto_secretstream_xchacha20poly1305_state st;
-
-    unsigned long long out_len;
-    int eof;
-    int ret = -1;
-    unsigned char tag;
-
-    FILE *fp_s = fopen(source_file, "rb");
-    fread(header, 1, sizeof(header), fp_s);
-    
-    if (crypto_secretstream_xchacha20poly1305_init_pull(&st, header, key) != 0) {
-        goto ret;
-    }
-
-    do {
-        size_t rlen = fread(buf_in, 1, sizeof buf_in, fp_s);
-        
-        eof = feof(fp_s);
-        
-        if (crypto_secretstream_xchacha20poly1305_pull(&st, buf_out, &out_len, &tag, buf_in, rlen, NULL, 0) != 0) {
-            goto ret;
-        }
-
-        if (tag == crypto_secretstream_xchacha20poly1305_TAG_FINAL && ! eof) {
-            goto ret;
-        }
-
-        fwrite(buf_out, 1, (size_t)out_len, stdout);
-        fwrite("\n", 1, (size_t)1, stdout);
-    } while (!eof);
-
-    ret = 0;
-ret:
-    fclose(fp_s);
-    
-    return ret;
-}
-
-/**
- * create_key generates a new AES key.
- */
-static int
-create_key(const char *key_file) 
-{
-    unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
-    crypto_secretstream_xchacha20poly1305_keygen(key);
-
-    FILE *f = fopen(key_file, "w");
-    if (!f) {
-        return 1;
-    }
-
-    fwrite(key, 1, crypto_secretstream_xchacha20poly1305_KEYBYTES, f);
-    fclose(f);
-
-    return 0;
-}
 
 /**
  * list prints the given directory tree 
@@ -305,7 +181,6 @@ main(int argc, char **argv)
         if (strcmp(argv[i], "init") == 0) {
             DIR* dir = opendir(pass_dir_path);
             if (ENOENT == errno) {
-                printf("creating directory: %s\n", pass_dir_path);
                 mkdir(pass_dir_path, 0700);
             } else {
                 closedir(dir);
@@ -316,14 +191,12 @@ main(int argc, char **argv)
                 printf("overwrite existing key? [Y/n] ");
                 scanf("%c", &answer);
                 if (answer == 'Y') {
-                    printf("creating key: %s\n", key_file_path);
                     if (create_key(key_file_path) != 0) {
                         perror("failed to generate key");
                         return 1;
                     }
                 }
             } else {
-                printf("creating key: %s\n", key_file_path);
                 if (create_key(key_file_path) != 0) {
                     perror("failed to create key");
                     return 1;

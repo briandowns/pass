@@ -92,7 +92,9 @@ decrypt_archive(const char *fileToDecrypt, const char *outputFile, const unsigne
 
 #define CHUNK 16384
 
-// compress_archive
+/**
+ * compress_archive
+ */
 static int
 compress_archive(FILE *source, FILE *dest) 
 {
@@ -147,7 +149,9 @@ compress_archive(FILE *source, FILE *dest)
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
 
-// decompress_archive
+/**
+ * decompress_archive
+ */
 // static int
 // decompress_archive(FILE *source, FILE *dest)
 // {
