@@ -20,9 +20,10 @@ RUN make         && \
 FROM alpine:3.16
 
 RUN apk update && apk upgrade && \
-    apk add mandoc build-base && \
+    apk add mandoc            && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder bin/pass /usr/local/bin/pass
+#COPY --from=builder /usr/local/man/man1/pass.1 /usr/local/man/man1/pass.1
 
-ENTRYPOINT ["sh"]
+ENTRYPOINT ["pass"]
