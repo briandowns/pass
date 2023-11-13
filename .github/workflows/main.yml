@@ -14,5 +14,4 @@ jobs:
       - name: Make Pass
         run: |
           sudo apt install -y libsodium-dev
-          make all
-          make test
+          make

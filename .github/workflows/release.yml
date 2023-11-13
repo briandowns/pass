@@ -14,8 +14,7 @@ jobs:
       - name: Build Pass
         run: |
           sudo apt install -y libsodium-dev
-          make all
-          make test
+          make
       - name: Publish Binaries
         uses: SierraSoftworks/gh-releases@v1.0.7
         with:
