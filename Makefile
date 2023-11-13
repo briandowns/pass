@@ -1,14 +1,14 @@
-CC                ?= cc
-DOCKER            ?= docker
+CC     ?= cc
+DOCKER ?= docker
 
-VERSION           := 0.9.0
+VERSION := 0.9.0
 
-BINDIR            := bin
-BINARY            := pass
-PREFIX            := /usr/local
+BINDIR := bin
+BINARY := pass
+PREFIX := /usr/local
 
-UNAME_S           := $(shell uname -s)
-UNAME_M           := $(shell uname -m)
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
 ARCH=
 ifeq ($(UNAME_M), x86_64)
 	ARCH=amd64

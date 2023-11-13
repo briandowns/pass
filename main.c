@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2022 Brian J. Downs
+ * Copyright (c) 2023 Brian J. Downs
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <libgen.h>
 #ifdef __linux__
-#include <limits.h>
+#include <linux/limits.h>
 #else
 #include <sys/syslimits.h>
 #endif
@@ -48,6 +48,9 @@
 #define STR(x) STR1(x)
 
 #define CONFIG_DIR ".pass"
+#ifdef __linux__
+#define DT_DIR 4
+#endif
 
 /**
  * COMMAND_ARG_ERR_CHECK checks to make sure the 
