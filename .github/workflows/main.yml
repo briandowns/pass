@@ -13,6 +13,6 @@ jobs:
       - uses: actions/checkout@v3
       - name: Make Pass
         run: |
-          apt install -y libsodium-dev
+          sudo apt install -y libsodium-dev
           make all
           make test
