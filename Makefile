@@ -31,9 +31,9 @@ override CFLAGS  += -O3 \
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 ifeq ($(UNAME_S),Darwin)
-	$(CC) main.c pass.c $(CFLAGS) -o $@-$(shell echo UNAME_S | tr '[:upper:]' '[:lower:]')-$(ARCH) $(LDFLAGS)
+	$(CC) main.c pass.c $(CFLAGS) -o $@-$(shell echo $(UNAME_S) | tr '[:upper:]' '[:lower:]')-$(ARCH) $(LDFLAGS)
 else
-	$(CC) main.c pass.c $(CFLAGS) -o $@-$(shell echo UNAME_S | tr '[:upper:]' '[:lower:]')-$(ARCH) -static $(LDFLAGS)
+	$(CC) main.c pass.c $(CFLAGS) -o $@-$(shell echo $(UNAME_S) | tr '[:upper:]' '[:lower:]')-$(ARCH) -static $(LDFLAGS)
 endif
 
 $(BINDIR):
