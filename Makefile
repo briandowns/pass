@@ -7,7 +7,7 @@ BINDIR            := bin
 BINARY            := pass
 PREFIX            := /usr/local
 
-UNAME_S           := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+UNAME_S           := $(shell uname -s)
 UNAME_M           := $(shell uname -m)
 ARCH=
 ifeq ($(UNAME_M), x86_64)
@@ -31,9 +31,9 @@ override CFLAGS  += -O3 \
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 ifeq ($(UNAME_S),Darwin)
-	$(CC) main.c pass.c $(CFLAGS) -o $@-$(UNAME_S)-$(ARCH) $(LDFLAGS)
+	$(CC) main.c pass.c $(CFLAGS) -o $@-$(shell echo UNAME_S | tr '[:upper:]' '[:lower:]')-$(ARCH) $(LDFLAGS)
 else
-	$(CC) main.c pass.c $(CFLAGS) -o $@-$(UNAME_S)-$(ARCH) -static $(LDFLAGS)
+	$(CC) main.c pass.c $(CFLAGS) -o $@-$(shell echo UNAME_S | tr '[:upper:]' '[:lower:]')-$(ARCH) -static $(LDFLAGS)
 endif
 
 $(BINDIR):
