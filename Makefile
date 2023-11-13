@@ -8,6 +8,15 @@ BINARY            := pass
 PREFIX            := /usr/local
 
 UNAME_S           := $(shell uname -s)
+UNAME_M           := $(shell uname -m | tr '[:upper:]' '[:lower:]')
+ARCH=
+ifeq ($(UNAME_M), x86_64)
+	ARCH=amd64
+else ifeq ($(UNAME_M), aarch64)
+	ARCH=arm64
+else 
+	ARCH=$(UNAME_M)
+endif
 
 INCDIR            = include
 MACOS_MANPAGE_LOC = /usr/share/man
@@ -22,9 +31,9 @@ override CFLAGS  += -O3 \
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 ifeq ($(UNAME_S),Darwin)
-	$(CC) main.c pass.c $(CFLAGS) -o $@ $(LDFLAGS)
+	$(CC) main.c pass.c $(CFLAGS) -o $@-$(UNAME_S)-$(ARCH) $(LDFLAGS)
 else
-	$(CC) main.c pass.c $(CFLAGS) -o $@ -static $(LDFLAGS)
+	$(CC) main.c pass.c $(CFLAGS) -o $@-$(UNAME_S)-$(ARCH) -static $(LDFLAGS)
 endif
 
 $(BINDIR):
