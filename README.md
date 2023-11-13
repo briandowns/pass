@@ -73,7 +73,7 @@ libsodium is used for cryptography and will need to be installed prior to compil
 
 * Apt
 
-`apt-get install -y libsodium-dev`
+`apt install -y libsodium-dev`
 
 * Apk
 

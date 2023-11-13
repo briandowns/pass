@@ -35,8 +35,7 @@ int encrypt_password(const char *target_file, const char *password, const unsign
  * decrypt_password decrypts the given file and prints out the 
  * contents to stdout.
  */
-int
-decrypt_password(const char *source_file, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]);
+int decrypt_password(const char *source_file, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]);
 
 int create_key(const char *key_file);
 

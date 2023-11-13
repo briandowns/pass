@@ -21,8 +21,7 @@ This is a destructive action that will prevent previously \
 passwords from being retrieved. Please make sure this is  \
 what you want to do.
 
-int
-encrypt_password(const char *target_file, const char *password, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]) {
+int encrypt_password(const char *target_file, const char *password, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]) {
     unsigned char buf_in[MAX_PASS_SIZE];
     unsigned char buf_out[MAX_PASS_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
     unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
@@ -39,9 +38,10 @@ encrypt_password(const char *target_file, const char *password, const unsigned c
 
     fwrite(header, 1, sizeof header, fp_t);
 
+    size_t pass_len = strlen(password);
     do {
         tag = eof ? crypto_secretstream_xchacha20poly1305_TAG_FINAL : 0;
-        crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, strlen(password), NULL, 0, tag);
+        crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, pass_len, NULL, 0, tag);
         fwrite(buf_out, 1, (size_t)out_len, fp_t);
     } while (!eof);
 
@@ -50,9 +50,7 @@ encrypt_password(const char *target_file, const char *password, const unsigned c
     return 0;
 }
 
-int
-decrypt_password(const char *source_file, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES])
-{
+int decrypt_password(const char *source_file, const unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES]) {
     unsigned char buf_in[MAX_PASS_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
     unsigned char buf_out[MAX_PASS_SIZE];
     unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
@@ -98,9 +96,7 @@ ret:
 /**
  * create_key generates a new AES key.
  */
-int
-create_key(const char *key_file) 
-{
+int create_key(const char *key_file)  {
     unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
     crypto_secretstream_xchacha20poly1305_keygen(key);
 
@@ -115,9 +111,7 @@ create_key(const char *key_file)
     return 0;
 }
 
-char*
-generate_password(const int size)
-{
+char* generate_password(const int size) {
     srand(time(NULL));
 
     char *password = malloc(MAX_PASS_SIZE);
@@ -133,9 +127,7 @@ generate_password(const int size)
  * in_dict checks to see if the given password is in the 
  * system dictionary.
  */
-static bool
-in_dict(const char *pass)
-{
+static bool in_dict(const char *pass) {
     char line[26];
 
     FILE *fp = fopen(WORD_LOCATION, "r");
@@ -161,9 +153,7 @@ in_dict(const char *pass)
  * has_special_char chceks the given password
  * for any special characters.
  */
-static bool
-has_special_char(const char *pass)
-{
+static bool has_special_char(const char *pass) {
     for (int i = 0; i < strlen(pass); i++) {
         if (strchr(SPECIAL_CHARS, pass[i]) ) {
             return true;
@@ -177,9 +167,7 @@ has_special_char(const char *pass)
  * has_number_char chceks the given password
  * for any number characters.
  */
-static bool
-has_number_char(const char *pass)
-{
+static bool has_number_char(const char *pass) {
     for (int i = 0; i < strlen(pass); i++) {
         if (strchr(NUMBER_CHARS, pass[i]) ) {
             return true;
@@ -193,9 +181,7 @@ has_number_char(const char *pass)
  * has_upper_char chceks the given password
  * for any upper characters.
  */
-static bool
-has_upper_char(const char *pass)
-{
+static bool has_upper_char(const char *pass) {
     for (int i = 0; i < strlen(pass); i++) {
         if (strchr(UPPER_CHARS, pass[i]) ) {
             return true;
@@ -209,9 +195,7 @@ has_upper_char(const char *pass)
  * has_lower_char chceks the given password
  * for any lower characters.
  */
-static bool
-has_lower_char(const char *pass)
-{
+static bool has_lower_char(const char *pass) {
     for (int i = 0; i < strlen(pass); i++) {
         if (strchr(LOWER_CHARS, pass[i]) ) {
             return true;
@@ -221,9 +205,7 @@ has_lower_char(const char *pass)
     return false;
 }
 
-void
-check(const char *pass)
-{
+void check(const char *pass) {
     printf("report:\n");
 
     int score = 0;

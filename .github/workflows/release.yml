@@ -1,0 +1,38 @@
+name: Pass Release
+on:
+ push:
+   tags:
+     - "v*"
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v4
+      - name: Build Pass
+        run: |
+          apt install -y libsodium-dev
+          make all
+          make test
+      - name: Publish Binaries
+        uses: SierraSoftworks/gh-releases@v1.0.7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: 'true'
+          files: |
+            ${{ github.workspace }}/bin/pass-linux-amd64
+            ${{ github.workspace }}/include/pass_manpage
+      - name: Docker Hub Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: briandowns/pass:${{ github.ref_name }}
+          file: ./Dockerfile
+          context: .

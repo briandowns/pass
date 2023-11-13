@@ -8,6 +8,7 @@ RUN apk update && apk upgrade && \
     libsodium-static             \
     zlib-dev                     \
     zlib-static                  \
+    libcurl                      \
     git                       && \
     rm -rf /var/lib/apt/lists/*
 
@@ -17,7 +18,7 @@ RUN make         && \
     make install && \
     make manpage
 
-FROM alpine:3.16
+FROM alpine:3.18
 
 RUN apk update && apk upgrade && \
     apk add mandoc            && \

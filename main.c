@@ -82,9 +82,7 @@
  * list prints the given directory tree 
  * recursively.
  */
-static void
-list(const char *name, const int indent)
-{
+static void list(const char *name, const int indent) {
     DIR *dir;
     struct dirent *de;
 
@@ -116,9 +114,7 @@ list(const char *name, const int indent)
     closedir(dir);
 }
 
-static void
-mkdir_p(const char *dir)
-{
+static void mkdir_p(const char *dir) {
     char tmp[256];
     char *p = NULL;
     size_t len;
@@ -136,9 +132,7 @@ mkdir_p(const char *dir)
     mkdir(tmp, S_IRWXU);
 }
 
-int
-main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     if (argc < 2) {
         printf(USAGE, STR(app_name));
         return 1;
@@ -294,4 +288,3 @@ main(int argc, char **argv)
 
     return 0;
 }
-

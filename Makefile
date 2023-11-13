@@ -15,10 +15,10 @@ LINUX_MAPPAGE_LOC = $(PREFIX)/man/man1
 
 override LDFLAGS += -lsodium
 override CFLAGS  += -O3 \
-		-Dapp_name=$(BINARY) \
-		-Dgit_sha=$(shell git rev-parse HEAD) \
-		-Dapp_version=$(VERSION) \
-		-DSODIUM_STATIC=1
+	-Dapp_name=$(BINARY) \
+	-Dgit_sha=$(shell git rev-parse HEAD) \
+	-Dapp_version=$(VERSION) \
+	-DSODIUM_STATIC=1
 
 $(BINDIR)/$(BINARY): $(BINDIR) clean
 ifeq ($(UNAME_S),Darwin)
