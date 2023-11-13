@@ -7,8 +7,8 @@ BINDIR            := bin
 BINARY            := pass
 PREFIX            := /usr/local
 
-UNAME_S           := $(shell uname -s)
-UNAME_M           := $(shell uname -m | tr '[:upper:]' '[:lower:]')
+UNAME_S           := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+UNAME_M           := $(shell uname -m)
 ARCH=
 ifeq ($(UNAME_M), x86_64)
 	ARCH=amd64
