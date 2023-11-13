@@ -22,7 +22,7 @@ INCDIR            = include
 MACOS_MANPAGE_LOC = /usr/share/man
 LINUX_MAPPAGE_LOC = $(PREFIX)/man/man1
 
-override LDFLAGS += -lsodium
+override LDFLAGS += -lsodium -lpthread
 override CFLAGS  += -O3 \
 	-Dapp_name=$(BINARY) \
 	-Dgit_sha=$(shell git rev-parse HEAD) \
