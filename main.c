@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2023 Brian J. Downs
+ * Copyright (c) 2024 Brian J. Downs
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@
 #define STR(x) STR1(x)
 
 #define CONFIG_DIR ".pass"
-#ifdef __linux__
+#ifndef __linux__
 #define DT_DIR 4
 #endif
 
@@ -62,8 +62,8 @@
     return 1;                                         \
 }
 
-#define KEY_NAME   ".pass.key"
-#define IV_NAME    ".pass.iv"
+#define KEY_NAME ".pass.key"
+#define IV_NAME  ".pass.iv"
 
 #define USAGE                                                  \
     "usage: %s [-vh]\n"                                        \
@@ -124,14 +124,18 @@ static void mkdir_p(const char *dir) {
 
     snprintf(tmp, sizeof(tmp),"%s",dir);
     len = strlen(tmp);
-    if (tmp[len - 1] == '/')
+    if (tmp[len - 1] == '/') {
         tmp[len - 1] = 0;
-    for (p = tmp + 1; *p; p++)
+    }
+
+    for (p = tmp + 1; *p; p++) {
         if (*p == '/') {
             *p = 0;
             mkdir(tmp, S_IRWXU);
             *p = '/';
         }
+    }
+
     mkdir(tmp, S_IRWXU);
 }
 
@@ -186,7 +190,10 @@ int main(int argc, char **argv) {
             if (access(key_file_path, F_OK ) != -1) {
                 char answer;
                 printf("overwrite existing key? [Y/n] ");
-                scanf("%c", &answer);
+                if (scanf("%c", &answer) == EOF) {
+                    perror("failed to read user input");
+                    return 1;
+                }
                 if (answer == 'Y') {
                     if (create_key(key_file_path) != 0) {
                         perror("failed to generate key");
@@ -224,15 +231,15 @@ int main(int argc, char **argv) {
 
             char pass_buf[MAX_PASS_SIZE] = {0};
             strcpy(pass_buf, getpass("enter password: "));
-
+            
             PASSWORD_FILE_PATH;
-
+            
             if (strchr(fp, '/') != NULL) {
                 char *temp_fp = strdup(fp);
                 mkdir_p(dirname(temp_fp));
                 free(temp_fp);
             }
-
+            
             if (encrypt_password(fp, pass_buf, key) != 0) {
                 return 1;
             }
