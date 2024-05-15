@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2023 Brian J. Downs
+ * Copyright (c) 2024 Brian J. Downs
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,24 +47,6 @@
 #define STR1(x) #x
 #define STR(x) STR1(x)
 
-#define CONFIG_DIR ".pass"
-#ifdef __linux__
-#define DT_DIR 4
-#endif
-
-/**
- * COMMAND_ARG_ERR_CHECK checks to make sure the 
- * there is an argument to the given command if 
- * if not, print an error and exit.
- */
-#define COMMAND_ARG_ERR_CHECK if (argc != 3) {        \
-    printf("error: %s requires argument\n", argv[i]); \
-    return 1;                                         \
-}
-
-#define KEY_NAME   ".pass.key"
-#define IV_NAME    ".pass.iv"
-
 #define USAGE                                                  \
     "usage: %s [-vh]\n"                                        \
     "  -v            version\n"                                \
@@ -80,6 +62,24 @@
     "  config        show current configuration\n"             \
     "  help          display the help menu\n"                  \
     "  version       show the version\n"
+
+#define CONFIG_DIR ".pass"
+#ifndef __linux__
+#define DT_DIR 4
+#endif
+
+/**
+ * COMMAND_ARG_ERR_CHECK checks to make sure the 
+ * there is an argument to the given command if 
+ * if not, print an error and exit.
+ */
+#define COMMAND_ARG_ERR_CHECK if (argc != 3) {                \
+    fprintf(stderr, "error: %s requires argument\n", argv[i]); \
+    return 1;                                                 \
+}
+
+#define KEY_NAME ".pass.key"
+#define IV_NAME  ".pass.iv"
 
 /**
  * list prints the given directory tree 
@@ -124,14 +124,18 @@ static void mkdir_p(const char *dir) {
 
     snprintf(tmp, sizeof(tmp),"%s",dir);
     len = strlen(tmp);
-    if (tmp[len - 1] == '/')
+    if (tmp[len - 1] == '/') {
         tmp[len - 1] = 0;
-    for (p = tmp + 1; *p; p++)
+    }
+
+    for (p = tmp + 1; *p; p++) {
         if (*p == '/') {
             *p = 0;
             mkdir(tmp, S_IRWXU);
             *p = '/';
         }
+    }
+
     mkdir(tmp, S_IRWXU);
 }
 
@@ -186,16 +190,19 @@ int main(int argc, char **argv) {
             if (access(key_file_path, F_OK ) != -1) {
                 char answer;
                 printf("overwrite existing key? [Y/n] ");
-                scanf("%c", &answer);
+                if (scanf("%c", &answer) == EOF) {
+                    fprintf(stderr, "error: failed to read user input\n");
+                    return 1;
+                }
                 if (answer == 'Y') {
                     if (create_key(key_file_path) != 0) {
-                        perror("failed to generate key");
+                        fprintf(stderr, "error: failed to generate key\n");
                         return 1;
                     }
                 }
             } else {
                 if (create_key(key_file_path) != 0) {
-                    perror("failed to create key");
+                    fprintf(stderr, "error: failed to create key\n");
                     return 1;
                 }
             }
@@ -224,6 +231,11 @@ int main(int argc, char **argv) {
 
             char pass_buf[MAX_PASS_SIZE] = {0};
             strcpy(pass_buf, getpass("enter password: "));
+            
+            if (strlen(pass_buf) == 0) {
+                fprintf(stderr, "error: empty passwords are not allowed\n");
+                return 1;
+            }
 
             PASSWORD_FILE_PATH;
 

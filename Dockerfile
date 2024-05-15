@@ -1,7 +1,9 @@
-FROM alpine:3.16 AS builder
+FROM alpine:3.19 AS builder
 
 RUN apk update && apk upgrade && \
     apk add build-base           \
+    musl-dev                     \
+    linux-headers                \
     make                         \
     gcc                          \
     libsodium-dev                \

@@ -25,25 +25,24 @@ int encrypt_password(const char *target_file, const char *password, const unsign
     unsigned char buf_in[MAX_PASS_SIZE];
     unsigned char buf_out[MAX_PASS_SIZE + crypto_secretstream_xchacha20poly1305_ABYTES];
     unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
-    
+
     crypto_secretstream_xchacha20poly1305_state st;
 
     unsigned long long out_len;
-    int eof;
     unsigned char tag;
     
     FILE *fp_t = fopen(target_file, "wb");
 
     crypto_secretstream_xchacha20poly1305_init_push(&st, header, key);
-
+    
     fwrite(header, 1, sizeof header, fp_t);
 
     size_t pass_len = strlen(password);
     do {
-        tag = eof ? crypto_secretstream_xchacha20poly1305_TAG_FINAL : 0;
+        tag = EOF ? crypto_secretstream_xchacha20poly1305_TAG_FINAL : 0;
         crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, pass_len, NULL, 0, tag);
         fwrite(buf_out, 1, (size_t)out_len, fp_t);
-    } while (!eof);
+    } while (!EOF);
 
     fclose(fp_t);
 
