@@ -40,9 +40,8 @@ int encrypt_password(const char *target_file, const char *password, const unsign
 
     do {
         tag = EOF ? crypto_secretstream_xchacha20poly1305_TAG_FINAL : 0;
-        crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, strlen(password)+1, NULL, 0, tag);
+        crypto_secretstream_xchacha20poly1305_push(&st, buf_out, &out_len, password, strlen(password), NULL, 0, tag);
         fwrite(buf_out, 1, (size_t)out_len, fp_t);
-        printf("XXX - %d here\n", EOF);
     } while (!EOF);
 
     fclose(fp_t);
