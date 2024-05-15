@@ -47,24 +47,6 @@
 #define STR1(x) #x
 #define STR(x) STR1(x)
 
-#define CONFIG_DIR ".pass"
-#ifndef __linux__
-#define DT_DIR 4
-#endif
-
-/**
- * COMMAND_ARG_ERR_CHECK checks to make sure the 
- * there is an argument to the given command if 
- * if not, print an error and exit.
- */
-#define COMMAND_ARG_ERR_CHECK if (argc != 3) {        \
-    printf("error: %s requires argument\n", argv[i]); \
-    return 1;                                         \
-}
-
-#define KEY_NAME ".pass.key"
-#define IV_NAME  ".pass.iv"
-
 #define USAGE                                                  \
     "usage: %s [-vh]\n"                                        \
     "  -v            version\n"                                \
@@ -80,6 +62,24 @@
     "  config        show current configuration\n"             \
     "  help          display the help menu\n"                  \
     "  version       show the version\n"
+
+#define CONFIG_DIR ".pass"
+#ifndef __linux__
+#define DT_DIR 4
+#endif
+
+/**
+ * COMMAND_ARG_ERR_CHECK checks to make sure the 
+ * there is an argument to the given command if 
+ * if not, print an error and exit.
+ */
+#define COMMAND_ARG_ERR_CHECK if (argc != 3) {                \
+    fprintf(stderr, "error: %s requires argument\n", argv[i]); \
+    return 1;                                                 \
+}
+
+#define KEY_NAME ".pass.key"
+#define IV_NAME  ".pass.iv"
 
 /**
  * list prints the given directory tree 
@@ -191,18 +191,18 @@ int main(int argc, char **argv) {
                 char answer;
                 printf("overwrite existing key? [Y/n] ");
                 if (scanf("%c", &answer) == EOF) {
-                    perror("failed to read user input");
+                    fprintf(stderr, "error: failed to read user input\n");
                     return 1;
                 }
                 if (answer == 'Y') {
                     if (create_key(key_file_path) != 0) {
-                        perror("failed to generate key");
+                        fprintf(stderr, "error: failed to generate key\n");
                         return 1;
                     }
                 }
             } else {
                 if (create_key(key_file_path) != 0) {
-                    perror("failed to create key");
+                    fprintf(stderr, "error: failed to create key\n");
                     return 1;
                 }
             }
@@ -232,14 +232,19 @@ int main(int argc, char **argv) {
             char pass_buf[MAX_PASS_SIZE] = {0};
             strcpy(pass_buf, getpass("enter password: "));
             
+            if (strlen(pass_buf) == 0) {
+                fprintf(stderr, "error: empty passwords are not allowed\n");
+                return 1;
+            }
+
             PASSWORD_FILE_PATH;
-            
+
             if (strchr(fp, '/') != NULL) {
                 char *temp_fp = strdup(fp);
                 mkdir_p(dirname(temp_fp));
                 free(temp_fp);
             }
-            
+
             if (encrypt_password(fp, pass_buf, key) != 0) {
                 return 1;
             }
